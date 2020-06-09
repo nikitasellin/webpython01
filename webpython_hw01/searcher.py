@@ -49,12 +49,11 @@ def extract_links_from_page(html, engine):
     hashes = set()
     soup = BeautifulSoup(html, 'html.parser')
     if engine == 'google':
-        anchors = soup.find('div', id='search').find_all('a')
-        next_page_url = soup.find('a', id='pnnext')['href']
-        next_page_url = urljoin('https://www.google.com/', next_page_url)
+        anchors, next_page_url = get_google_anchors(soup)
+    elif engine == 'yahoo':
+        anchors, next_page_url = get_yahoo_anchors(soup)
     else:
-        anchors = soup.find_all('a', class_='ac-algo fz-l ac-21th lh-24')
-        next_page_url = soup.find('a', class_='next')['href']
+        raise ValueError(f'Unknown engine "{engine}".')
     for a in anchors:
         link = a['href']
         # Exclude excess results.
@@ -66,6 +65,24 @@ def extract_links_from_page(html, engine):
         text = clean_text(a)
         results.append((text, link))
     return results, next_page_url
+
+
+def get_google_anchors(soup):
+    anchors = []
+    divs = soup.find_all('div', class_='r')
+    for div in divs:
+        anchor = div.find('a')
+        if anchor:
+            anchors.append(anchor)
+    next_page_url = soup.find('a', id='pnnext')['href']
+    next_page_url = urljoin('https://www.google.com/', next_page_url)
+    return anchors, next_page_url
+
+
+def get_yahoo_anchors(soup):
+    anchors = soup.find_all('a', class_='ac-algo fz-l ac-21th lh-24')
+    next_page_url = soup.find('a', class_='next')['href']
+    return anchors, next_page_url
 
 
 def filter_result(link, engine):
