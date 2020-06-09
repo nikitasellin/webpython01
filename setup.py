@@ -19,7 +19,7 @@ setup(
     url='https://github.com/nikitasellin/webpython01',
     author='Nikita A. Selin',
     author_email='nikita@selin.com.ru',
-    keywords=['random', 'number'],
+    keywords=['console', 'searcher', 'google', 'yahoo'],
     python_requires='==3.8.3',
     install_requires=[
          "beautifulsoup4==4.9.0",
