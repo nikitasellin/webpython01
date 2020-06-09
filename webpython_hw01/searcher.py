@@ -69,19 +69,25 @@ def extract_links_from_page(html, engine):
 
 def get_google_anchors(soup):
     anchors = []
+    next_page_url = None
     divs = soup.find_all('div', class_='r')
     for div in divs:
         anchor = div.find('a')
         if anchor:
             anchors.append(anchor)
-    next_page_url = soup.find('a', id='pnnext')['href']
-    next_page_url = urljoin('https://www.google.com/', next_page_url)
+    next_page_anchor = soup.find('a', id='pnnext')
+    if next_page_anchor:
+        next_page_url = next_page_anchor['href']
+        next_page_url = urljoin('https://www.google.com/', next_page_url)
     return anchors, next_page_url
 
 
 def get_yahoo_anchors(soup):
+    next_page_url = None
     anchors = soup.find_all('a', class_='ac-algo fz-l ac-21th lh-24')
-    next_page_url = soup.find('a', class_='next')['href']
+    next_page_anchor = soup.find('a', class_='next')
+    if next_page_anchor:
+        next_page_url = next_page_anchor['href']
     return anchors, next_page_url
 
 
@@ -124,7 +130,7 @@ def fetch_results(query, results_count, engine):
     query = ' '.join(query)
     query = quote_plus(query)
     url = url.format(query)
-    while True:
+    while url:
         logging.info(f'Fetching url: "{url}".')
         html = get_page(url, engine)
         found_links, next_page_url = extract_links_from_page(html, engine)
@@ -135,6 +141,8 @@ def fetch_results(query, results_count, engine):
                 return links
         url = next_page_url
         time.sleep(PAUSE)
+    logging.info('No more results avaiable.')
+    return links
 
 
 def print_results(links):
